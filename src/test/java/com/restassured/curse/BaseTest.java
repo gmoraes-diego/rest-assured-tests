@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.*;
 
 public class BaseTest {
     @Test
-    public void testGetListUsers() {
+    public void shouldReturnListOfUsers() {
         given().log().all()
                 .queryParam("page", 2)
                 .when()
@@ -33,7 +33,7 @@ public class BaseTest {
     }
 
     @Test
-    public void testGetSingleUser() {
+    public void shouldReturnSingleUserById() {
         given().log().all()
                 .pathParams("id", 2)
                 .when()
@@ -51,7 +51,7 @@ public class BaseTest {
 
 
     @Test
-    public void testGetSingleUserNotFound() {
+    public void shouldReturnNotFoundForNonexistentUser() {
         given().log().all()
                 .pathParams("id", 23)
                 .when()
@@ -63,7 +63,7 @@ public class BaseTest {
     }
 
     @Test
-    public void testGetListResourceSize() {
+    public void shouldReturnCorrectResourceListSize() {
         given().log().all()
                 .when()
                 .get("https://reqres.in/api/unknown")
@@ -75,7 +75,7 @@ public class BaseTest {
     }
 
     @Test
-    public void testValidatePerPageMatchesDataSize() {
+    public void shouldMatchPerPageWithDataSize() {
         // Faz a requisição e armazena a resposta completa
         Response response = given().log().all()
                 .when()
@@ -94,7 +94,7 @@ public class BaseTest {
     }
 
     @Test
-    public void testPostCreateUsers() {
+    public void shouldCreateUserSuccessfully() {
         // Cria um mapa para armazenar os dados que serão enviados no corpo da requisição
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("name", "Diego"); // Adiciona o campo "name" com o valor "Márcio"
@@ -116,7 +116,7 @@ public class BaseTest {
     }
 
     @Test
-    public void testPutUpdateSingleUser() {
+    public void shouldUpdateUserWithPut() {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("name", "Mary");
         requestBody.put("job", "Architect");
@@ -133,7 +133,7 @@ public class BaseTest {
     }
 
     @Test
-    public void testPatchUpdateSingleUser() {
+    public void shouldPartiallyUpdateUserWithPatch() {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("job", "Senior developer");
 
@@ -150,7 +150,7 @@ public class BaseTest {
     }
 
     @Test
-    public void testDeleteSingleUser() {
+    public void shouldDeleteUserSuccessfully() {
         given().log().all()
                 .pathParams("id", 4)
                 .when()
