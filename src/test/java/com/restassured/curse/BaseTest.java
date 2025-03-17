@@ -25,6 +25,7 @@ public class BaseTest {
                 .body("per_page", is(6))
                 .body("total", is(12))
                 .body("total_pages", is(2))
+                .body("data.size()", is(6))
                 .body("data[0].id", is(7))
                 .body("data[0].email", is("michael.lawson@reqres.in"))
                 .body("data[0].first_name", is("Michael"))
@@ -58,7 +59,8 @@ public class BaseTest {
                 .get("https://reqres.in/api/users/{id}")
                 .then().log().all()
                 .statusCode(404)
-                .body("$", anEmptyMap());
+                .body("$", anEmptyMap()); // Verifica se o corpo da resposta é um mapa vazio
+                // "$" faz referência ao objeto JSON inteiro, ou a raiz da estrutura de dados que está sendo manipulada.
 
     }
 
@@ -76,20 +78,23 @@ public class BaseTest {
 
     @Test
     public void shouldMatchPerPageWithDataSize() {
-        // Faz a requisição e armazena a resposta completa
+
+        // Realiza a requisição HTTP GET para o endpoint "https://reqres.in/api/unknown" e armazena a resposta
         Response response = given().log().all()
                 .when()
                 .get("https://reqres.in/api/unknown")
                 .then().log().all()
                 .statusCode(200)
-                .extract()
-                .response(); // Extrai a resposta completa
+                .extract()  // Extrai a resposta para manipulá-la posteriormente
+                .response();  // Armazena a resposta completa em um objeto Response
 
-        // Extrai os valores do JSON
-        int perPageValue = response.jsonPath().getInt("per_page"); // Obtém "per_page"
-        int dataSize = response.jsonPath().getList("data").size(); // Obtém o tamanho da lista "data"
+        // Extrai o valor de "per_page" do JSON da resposta e armazena em uma variável inteira
+        int perPageValue = response.jsonPath().getInt("per_page");
 
-        // Valida que o tamanho de "data" é igual ao valor de "per_page"
+        // Extrai a lista "data" do JSON da resposta e obtém o tamanho dessa lista, armazenando o valor em dataSize
+        int dataSize = response.jsonPath().getList("data").size();
+
+        // Asserção para verificar se o tamanho da lista "data" é igual ao valor de "per_page"
         assertThat(dataSize, is(perPageValue));
     }
 
@@ -97,8 +102,8 @@ public class BaseTest {
     public void shouldCreateUserSuccessfully() {
         // Cria um mapa para armazenar os dados que serão enviados no corpo da requisição
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("name", "Diego"); // Adiciona o campo "name" com o valor "Márcio"
-        requestBody.put("job", "QA Engineer");  // Adiciona o campo "job" com o valor "Motorista"
+        requestBody.put("name", "Diego"); // Adiciona o campo "name" com o valor "Diego"
+        requestBody.put("job", "QA Engineer");  // Adiciona o campo "job" com o valor "QA Engineer"
 
         given()
                 .contentType(ContentType.JSON) // Define o tipo de conteúdo como JSON
@@ -106,7 +111,7 @@ public class BaseTest {
                 .when()
                 .post("https://reqres.in/api/users")
                 .then().log().all()
-                .statusCode(201) // Continua verificando se a criação foi bem-sucedida
+                .statusCode(201)
                 .body("name", is(requestBody.get("name")))
                 // Valida que o campo "name" no response é igual ao valor de "name" da request.
                 .body("job", is(requestBody.get("job")))
