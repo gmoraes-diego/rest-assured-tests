@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -131,10 +132,10 @@ public class BaseTest {
                 .contentType(ContentType.JSON)
                 .body(requestBody)
                 .when()
-                .put("https://reqres.in/api/api/users/{id}")
+                .put("https://reqres.in/api/users/{id}")
                 .then().log().all()
                 .statusCode(200)
-                .body("updatedAt", containsString(LocalDate.now().toString())); // Valida data do update
+                .body("updatedAt", containsString(LocalDate.now(ZoneOffset.UTC).toString())); // Valida data do update
     }
 
     @Test
@@ -151,7 +152,7 @@ public class BaseTest {
                 .then().log().all()
                 .statusCode(200)
                 .body("job", is(requestBody.get("job")))
-                .body("updatedAt", containsString(LocalDate.now().toString())); // Valida data do update
+                .body("updatedAt", containsString(LocalDate.now(ZoneOffset.UTC).toString())); // Valida data do update
     }
 
     @Test
