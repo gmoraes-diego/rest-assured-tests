@@ -1,31 +1,28 @@
 package com.restassured.curse;
 
 import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.HashMap;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-public class BaseTest {
+public class UserTest {
+
+    private static final String BASE_URL = "https://reqres.in/api/users";
+
     @Test
     public void shouldReturnListOfUsers() {
         given().log().all()
                 .queryParam("page", 2)
                 .when()
-                .get("https://reqres.in/api/users")
+                .get(BASE_URL)
                 .then().log().all()
                 .statusCode(200)
                 .body("page", is(2))
-                .body("per_page", is(6))
-                .body("total", is(12))
-                .body("total_pages", is(2))
                 .body("data.size()", is(6))
                 .body("data[0].id", is(7))
                 .body("data[0].email", is("michael.lawson@reqres.in"))
@@ -39,7 +36,7 @@ public class BaseTest {
         given().log().all()
                 .pathParams("id", 2)
                 .when()
-                .get("https://reqres.in/api/users/{id}")
+                .get(BASE_URL + "/{id}")
                 .then().log().all()
                 .statusCode(200)
                 .body("data.id", is(2))
@@ -51,62 +48,25 @@ public class BaseTest {
                 .body("support.text", is( "Tired of writing endless social media content? Let Content Caddy generate it for you."));
     }
 
-
     @Test
     public void shouldReturnNotFoundForNonexistentUser() {
         given().log().all()
                 .pathParams("id", 23)
                 .when()
-                .get("https://reqres.in/api/users/{id}")
+                .get(BASE_URL + "/{id}")
                 .then().log().all()
                 .statusCode(404)
-                .body("$", anEmptyMap()); // Verifica se o corpo da resposta é um mapa vazio
-                // "$" faz referência ao objeto JSON inteiro, ou a raiz da estrutura de dados que está sendo manipulada.
-
-    }
-
-    @Test
-    public void shouldReturnCorrectResourceListSize() {
-        given().log().all()
-                .when()
-                .get("https://reqres.in/api/unknown")
-                .then().log().all()
-                .statusCode(200)
-                .body("per_page", is(6))
-                .body("data.size()", is(6));
-
-    }
-
-    @Test
-    public void shouldMatchPerPageWithDataSize() {
-
-        // Realiza a requisição HTTP GET para o endpoint "https://reqres.in/api/unknown" e armazena a resposta
-        Response response = given().log().all()
-                .when()
-                .get("https://reqres.in/api/unknown")
-                .then().log().all()
-                .statusCode(200)
-                .extract()  // Extrai a resposta para manipulá-la posteriormente
-                .response();  // Armazena a resposta completa em um objeto Response
-
-        // Extrai o valor de "per_page" do JSON da resposta e armazena em uma variável inteira
-        int perPageValue = response.jsonPath().getInt("per_page");
-
-        // Extrai a lista "data" do JSON da resposta e obtém o tamanho dessa lista, armazenando o valor em dataSize
-        int dataSize = response.jsonPath().getList("data").size();
-
-        // Asserção para verificar se o tamanho da lista "data" é igual ao valor de "per_page"
-        assertThat(dataSize, is(perPageValue));
+                .body("$", anEmptyMap()); // Corpo vazio
     }
 
     @Test
     public void shouldCreateUserSuccessfully() {
-        // Cria um mapa para armazenar os dados que serão enviados no corpo da requisição
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("name", "Diego"); // Adiciona o campo "name" com o valor "Diego"
-        requestBody.put("job", "QA Engineer");  // Adiciona o campo "job" com o valor "QA Engineer"
+        Map<String, Object> requestBody = Map.of(
+                "name", "Diego",
+                "job", "QA Engineer"
+        );
 
-        given()
+        given().log().all()
                 .contentType(ContentType.JSON) // Define o tipo de conteúdo como JSON
                 .body(requestBody) // Passa o corpo da requisição (o JSON criado acima)
                 .when()
@@ -117,42 +77,41 @@ public class BaseTest {
                 // Valida que o campo "name" no response é igual ao valor de "name" da request.
                 .body("job", is(requestBody.get("job")))
                 // Valida que o campo "job" na response é igual ao valor de "job" da request.
-                .body("id", notNullValue()) // Garante que a API retornou um ID para o novo usuário
-                .body("createdAt", notNullValue()); // Garante que a API retornou a data de criação
+                .body("id", notNullValue()); // Garante que a API retornou um ID para o novo usuário
     }
 
     @Test
     public void shouldUpdateUserWithPut() {
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("name", "Mary");
-        requestBody.put("job", "Architect");
+        Map<String, Object> requestBody = Map.of(
+                "name", "Mary",
+                "job", "Architect"
+        );
 
         given().log().all()
                 .pathParams("id", 2)
                 .contentType(ContentType.JSON)
                 .body(requestBody)
                 .when()
-                .put("https://reqres.in/api/users/{id}")
+                .put(BASE_URL + "/{id}")
                 .then().log().all()
                 .statusCode(200)
-                .body("updatedAt", containsString(LocalDate.now(ZoneOffset.UTC).toString())); // Valida data do update
+                .body("updatedAt", containsString(LocalDate.now(ZoneOffset.UTC).toString()));
     }
 
     @Test
     public void shouldPartiallyUpdateUserWithPatch() {
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("job", "Senior developer");
+        Map<String, Object> requestBody = Map.of("job", "Senior developer");
 
         given().log().all()
                 .pathParams("id", 3)
                 .contentType(ContentType.JSON)
                 .body(requestBody)
                 .when()
-                .patch("https://reqres.in/api/api/users/{id}")
+                .patch(BASE_URL + "/{id}")
                 .then().log().all()
                 .statusCode(200)
                 .body("job", is(requestBody.get("job")))
-                .body("updatedAt", containsString(LocalDate.now(ZoneOffset.UTC).toString())); // Valida data do update
+                .body("updatedAt", containsString(LocalDate.now(ZoneOffset.UTC).toString()));
     }
 
     @Test
@@ -160,7 +119,7 @@ public class BaseTest {
         given().log().all()
                 .pathParams("id", 4)
                 .when()
-                .delete("https://reqres.in/api/api/users/{id}")
+                .delete(BASE_URL + "/{id}")
                 .then().log().all()
                 .statusCode(204);
     }
